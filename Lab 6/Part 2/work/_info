@@ -1,0 +1,70 @@
+m255
+K4
+z2
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+Z0 dE:/Dav Vrat Chadha/ECE259/Lab 6/Part 2
+vcontrol
+Z1 !s110 1636061614
+!i10b 1
+!s100 9ih6bB^1:[_@P:4>QP>CM0
+I>PST^KNTf5^RG;JX>aV`20
+Z2 VDg1SIo80bB@j0V0VzS_@n1
+R0
+Z3 w1636056695
+Z4 8part2.v
+Z5 Fpart2.v
+L0 59
+Z6 OV;L;10.5b;63
+r1
+!s85 0
+31
+Z7 !s108 1636061614.000000
+Z8 !s107 part2.v|
+Z9 !s90 -reportprogress|300|part2.v|
+!i113 1
+Z10 tCvgOpt 0
+vdatapath
+R1
+!i10b 1
+!s100 XNnO6z9ndol[6T@jhS6_10
+IQRzF@7CEQ[EIe:KU^WeaK0
+R2
+R0
+R3
+R4
+R5
+L0 184
+R6
+r1
+!s85 0
+31
+R7
+R8
+R9
+!i113 1
+R10
+vpart2
+R1
+!i10b 1
+!s100 4Qb9iJMNFgjQ]mMFBjf7Z2
+I2iWTTh0A1@Uj:kT<TY0OE2
+R2
+R0
+R3
+R4
+R5
+L0 6
+R6
+r1
+!s85 0
+31
+R7
+R8
+R9
+!i113 1
+R10

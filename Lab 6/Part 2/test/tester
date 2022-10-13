@@ -1,0 +1,220 @@
+#!/bin/bash
+
+# update paths
+export QUARTUS_ROOTDIR_OVERRIDE=/cad1/Altera/20.1/quartus
+export MODELSIM_ROOT=/cad1/Altera/20.1/modelsim_ae
+export QSYS_ROOTDIR=${QUARTUS_ROOTDIR_OVERRIDE}/sopc_builder/bin
+export PATH=${PATH}:${QUARTUS_ROOTDIR_OVERRIDE}/bin:${QSYS_ROOTDIR}:${MODELSIM_ROOT}/bin
+
+# specify license
+LICENSEPROVIDER=1802@lancia.eecg.utoronto.ca
+if [ ! "$LM_LICENSE_FILE" ]; then
+	LM_LICENSE_FILE=${LICENSEPROVIDER}
+else
+	LM_LICENSE_FILE=${LICENSEPROVIDER}:$LM_LICENSE_FILE
+fi
+export LM_LICENSE_FILE
+
+# location of the tester script and testbenches -- UPDATE FOR EACH LAB!!
+SCRIPT_DIR="/cad2/ece253f/public/6/test"
+
+WD=`pwd`;
+PART1="part1"
+PART2="part2"
+PART3="part3"
+PART1TB="part1_tb"
+PART2TB="part2_tb"
+PART3TB="part3_tb"
+
+###########################################################################################
+						###			STATS	###
+###########################################################################################
+
+
+compile_error ()
+{
+	echo "#######################SUMMARY of $3###########################" >> $1
+	echo "STUD: the verilog code does not compile successfully!" >> $1
+	echo "Number of Errors by compiling the verilog code: $2" >> $1
+	echo "Number of Errors by running the simulation: NA" >> $1
+	echo "Number of PASSED: NA" >> $1
+	echo "Number of FAILED: NA" >> $1
+	echo "$3 is done!" >> $1	
+}
+
+
+run_error ()
+{
+	echo "######################SUMMARY of $4############################" >> $1
+	echo "STUD: vsim does not work... port/module name issue?" >> $1
+	echo "Number of Errors by compiling the verilog code: $2" >> $1
+	echo "Number of Errors by running the simulation: $3" >> $1
+	echo "Number of PASSED: NA" >> $1
+	echo "Number of FAILED: NA" >> $1
+	echo "$4 is done!" >> $1	
+}
+
+no_error ()
+{
+	echo "######################SUMMARY of $6##########################" >> $1
+	echo "Number of Errors by compiling the verilog code: $2" >> $1
+	echo "Number of Errors by running the simulation: $3" >> $1
+	echo "Number of PASSED: $4" >> $1
+	echo "Number of FAILED: $5" >> $1
+	echo "$6 is done!" >> $1	
+	
+}
+###########################################################
+
+
+
+
+	STUD_SUBMITTED=$WD
+	LOG=$STUD_SUBMITTED/track.txt
+	rm -rf $LOG
+
+	if [ -e $STUD_SUBMITTED/$PART2.v -o -e $STUD_SUBMITTED/$PART3.v -o -e $STUD_SUBMITTED/$PART4.v -o -e $STUD_SUBMITTED/$PART1.v ]; then
+		 :
+	else
+      	 echo "the name of your verilog codes should be parti.v where i is the number of the part" >> $LOG
+	   	 echo "DONE!" >> $LOG
+	 fi
+
+
+	#if [ -e  $STUD_SUBMITTED/$PART2TB.sv -o -e  $STUD_SUBMITTED/$PART3TB.sv -o -e  $STUD_SUBMITTED/$PART4TB.sv -o -e $STUD_SUBMITTED/$PART1TB.sv ]; then
+	if [ -e  $SCRIPT_DIR/$PART2TB.sv -o -e  $SCRIPT_DIR/$PART3TB.sv -o -e  $SCRIPT_DIR/$PART4TB.sv -o -e $SCRIPT_DIR/$PART1TB.sv ]; then
+		 :
+	else
+        echo "the name of the testbenches should be parti_tb.sv where i is the number of the part" >> $LOG
+	    echo "DONE!" >> $LOG
+
+	fi
+
+	###########################################################################################
+	###				COMPILE STUDENT'S CODE					###
+	###########################################################################################
+
+	PASSED_NUM_P2=0
+	PASSED_NUM_P1=0
+	PASSED_NUM_P3=0
+	FAILED_NUM_P1=0
+	FAILED_NUM_P2=0
+	FAILED_NUM_P3=0
+	
+	
+	############################################
+	if [ -e $PART1.v -a -e $SCRIPT_DIR/$PART1TB.sv ]; then
+		NUM_ERRORS=-1
+		NUM_ERRORS_RUN=-1
+	echo "#######################Part1###########################" >> $LOG
+		vlib work
+		vlog $PART1.v > $PART1.txt
+		NUM_ERRORS=$(grep "Errors:" $PART1.txt | cut -f2- -d: | cut -d, -f1)
+		cat $PART1.txt >> $LOG
+		rm -rf $PART1.txt 
+		vlog $SCRIPT_DIR/$PART1TB.sv >  $PART1.txt
+		rm -rf  $PART1.txt 
+		if [ $NUM_ERRORS -eq  0 ]; then 
+			vsim -c -do $SCRIPT_DIR/run.do work.$PART1TB > $PART1.txt
+			cat $PART1.txt >> $LOG
+			rm -rf work $PART1.txt 
+			NUM_ERRORS_RUN=$(grep  "Errors:"  transcript | cut -f2- -d: | cut -d, -f1)			
+			if [ $NUM_ERRORS_RUN -eq 0 ]; then
+				FAILED_NUM_P1=$(grep -o -i FAILED transcript | wc -l)
+				PASSED_NUM_P1=$(grep -o -i PASSED transcript | wc -l)
+				no_error $LOG $NUM_ERRORS $NUM_ERRORS_RUN $PASSED_NUM_P1 $FAILED_NUM_P1 $PART1
+			fi
+			if [  $NUM_ERRORS_RUN -ne 0 ]; then
+				run_error $LOG $NUM_ERRORS $NUM_ERRORS_RUN $PART1
+				PASSED_NUM_P1=0
+			fi	
+			rm -rf work transcript 
+		fi
+
+		if [ $NUM_ERRORS -ne 0 ]; then
+			compile_error $LOG $NUM_ERRORS $PART1
+			PASSED_NUM_P1=0
+		fi
+
+	fi
+
+	###########################################
+	if [ -e $PART2.v -a -e $SCRIPT_DIR/$PART2TB.sv ]; then
+		NUM_ERRORS=-1
+		NUM_ERRORS_RUN=-1
+		echo "#######################Part2###########################" >> $LOG
+		vlib work
+		vlog $PART2.v > $PART2.txt
+		NUM_ERRORS=$(grep "Errors:" $PART2.txt | cut -f2- -d: | cut -d, -f1)
+		cat $PART2.txt >> $LOG		
+		rm -rf $PART2.txt 
+		vlog $SCRIPT_DIR/$PART2TB.sv >  $PART2.txt
+		rm -rf $PART2.txt 
+		if [ $NUM_ERRORS -eq  0 ]; then 
+			vsim -c -do $SCRIPT_DIR/run.do work.$PART2TB >  $PART2.txt  
+			cat $PART2.txt >> $LOG
+			rm -rf work $PART2.txt 
+			NUM_ERRORS_RUN=$(grep  "Errors:"  transcript | cut -f2- -d: | cut -d, -f1)
+
+			
+			if [ $NUM_ERRORS_RUN -eq 0 ]; then
+				FAILED_NUM_P2=$(grep -o -i FAILED transcript | wc -l)
+				PASSED_NUM_P2=$(grep -o -i PASSED transcript | wc -l)
+				no_error $LOG $NUM_ERRORS $NUM_ERRORS_RUN $PASSED_NUM_P2 $FAILED_NUM_P2 $PART2
+			fi
+			if [  $NUM_ERRORS_RUN -ne 0 ]; then
+				run_error $LOG $NUM_ERRORS $NUM_ERRORS_RUN $PART2
+				PASSED_NUM_P2=0
+			fi	
+			rm -rf work transcript 
+		fi
+
+		if [ $NUM_ERRORS -ne 0 ]; then
+			compile_error $LOG $NUM_ERRORS $PART2
+			PASSED_NUM_P2=0
+		fi
+
+	fi
+	###########################################
+
+	if [ -e $PART3.v -a -e $SCRIPT_DIR/$PART3TB.sv ]; then
+		echo "#######################Part3###########################" >> $LOG
+		NUM_ERRORS=-1
+		NUM_ERRORS_RUN=-1
+ 		vlib work 
+		vlog $PART3.v > $PART3.txt
+		NUM_ERRORS=$(grep "Errors:" $PART3.txt | cut -f2- -d: | cut -d, -f1)
+		cat $PART3.txt >> $LOG		
+		rm -rf $PART3.txt
+		vlog $SCRIPT_DIR/$PART3TB.sv >  $PART3.txt
+		rm -rf  $PART3.txt
+     	if [ $NUM_ERRORS -eq  0 ]; then 
+     		vsim -c -do $SCRIPT_DIR/run.do work.$PART3TB > $PART3.txt
+			cat $PART3.txt >> $LOG		
+			rm -rf work $PART3.txt
+			NUM_ERRORS_RUN=$(grep  "Errors:"  transcript | cut -f2- -d: | cut -d, -f1)
+
+			if [ $NUM_ERRORS_RUN -eq 0 ]; then
+				FAILED_NUM_P3=$(grep -o -i FAILED transcript | wc -l)
+				PASSED_NUM_P3=$(grep -o -i PASSED transcript | wc -l)
+				no_error $LOG $NUM_ERRORS $NUM_ERRORS_RUN $PASSED_NUM_P3 $FAILED_NUM_P3 $PART3
+			fi
+			if [ $NUM_ERRORS_RUN -ne 0 ]; then
+				run_error $LOG $NUM_ERRORS $NUM_ERRORS_RUN $PART3
+				PASSED_NUM_P3=0	
+			fi	
+			rm -rf transcript
+		fi
+		if [ $NUM_ERRORS -ne 0 ]; then
+			compile_error $LOG $NUM_ERRORS $PART3
+			PASSED_NUM_P3=0	
+     	fi
+		
+	fi
+	
+	cat $LOG
+
+
+
+
+

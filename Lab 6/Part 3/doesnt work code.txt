@@ -1,0 +1,244 @@
+/* //Original code: doesnt work properly
+module part3(Clock, Resetn, Go, Divisor, Dividend, Quotient, Remainder);
+    input Clock;
+    input Resetn;
+    input Go;
+    input [3:0] Divisor;
+    input [3:0] Dividend;
+    output [3:0] Quotient;
+    output [4:0] Remainder;
+
+    // lots of wires to connect our datapath and control
+    wire ld_divisor, ld_reg_mux, ld_dividend_mux, ld_reg, ld_dividend, ld_quotient, ld_remainder;
+    wire alu_op;
+
+ 
+    
+    control C0(
+        .clk(Clock),
+        .resetn(Resetn),
+        
+        .go(Go),
+        
+        .ld_reg_mux(ld_reg_mux),
+	.ld_dividend_mux(ld_dividend_mux), 
+        .ld_divisor(ld_divisor),
+        .ld_reg(ld_reg),
+        .ld_dividend(ld_dividend),
+        .ld_quotient(ld_quotient), 
+        .ld_remainder(ld_remainder), 
+        
+        .alu_op(alu_op)
+    );
+
+    
+
+    datapath D0(
+        .clk(Clock),
+        .resetn(Resetn),
+
+        .ld_reg_mux(ld_reg_mux),
+	.ld_dividend_mux(ld_dividend_mux), 
+        .ld_divisor(ld_divisor),
+        .ld_reg(ld_reg),
+        .ld_dividend(ld_dividend),
+        .ld_quotient(ld_quotient), 
+        .ld_remainder(ld_remainder), 
+
+        .alu_op(alu_op),
+
+        .divisor(Divisor),
+	.dividend(Dividend),
+        .quotient(Quotient),
+	.remainder(Remainder)
+    );
+                
+ endmodule             
+                
+
+module control(
+    input clk,
+    input resetn,
+    input go,
+
+    output reg  ld_divisor, ld_reg_mux, ld_dividend_mux, ld_reg, ld_dividend, ld_quotient, ld_remainder,
+    output reg alu_op
+    );
+
+    reg [5:0] current_state, next_state; 
+    
+    localparam  S_LOAD_INPUTS 	= 5'd0,
+                S_LOAD_INPUTS_WAIT     = 5'd1,
+                S_CYCLE_0       = 5'd2,
+                S_CYCLE_1       = 5'd3,
+                S_CYCLE_2       = 5'd4,
+		S_CYCLE_3       = 5'd5;
+    
+    // Next state logic aka our state table
+    always@(*)
+    begin: state_table 
+            case (current_state)
+                S_LOAD_INPUTS: next_state = go ? S_LOAD_INPUTS_WAIT : S_LOAD_INPUTS; 
+                S_LOAD_INPUTS_WAIT: next_state = go ? S_LOAD_INPUTS_WAIT : S_CYCLE_0;
+                S_CYCLE_0: next_state = S_CYCLE_1;  
+		S_CYCLE_1: next_state = S_CYCLE_2;  
+		S_CYCLE_2: next_state = S_CYCLE_3;  
+                S_CYCLE_3: next_state = S_LOAD_INPUTS; 
+            default:     next_state = S_LOAD_INPUTS;
+        endcase
+    end // state_table
+   
+
+    // Output logic aka all of our datapath control signals
+    always @(*)
+    begin: enable_signals
+        // By default make all our signals 0
+        ld_reg_mux = 1'b0;
+        ld_dividend_mux = 1'b0;
+        ld_divisor = 1'b0;
+        ld_reg = 1'b0;
+        ld_dividend = 1'b0;
+	ld_quotient = 1'b0;
+        ld_remainder = 1'b0;
+        alu_op = 1'b0;
+
+        case (current_state)
+            S_LOAD_INPUTS: begin
+        	ld_reg_mux = 1'b0;
+        	ld_dividend_mux = 1'b0;
+        	ld_divisor = 1'b1;
+        	ld_reg = 1'b1;
+        	ld_dividend = 1'b1;
+            end
+            S_CYCLE_0: begin
+                ld_reg_mux = 1'b1; ld_dividend_mux = 1'b1;
+		ld_reg= 1'b1; ld_dividend = 1'b1;
+                alu_op = 1'b1; // divides on active high
+            end
+
+            S_CYCLE_1: begin
+                ld_reg_mux = 1'b1; ld_dividend_mux = 1'b1;
+		ld_reg= 1'b1; ld_dividend = 1'b1;
+                alu_op = 1'b1; // divides on active high
+            end
+
+	    S_CYCLE_2: begin
+                ld_reg_mux = 1'b1; ld_dividend_mux = 1'b1;
+		ld_reg= 1'b1; ld_dividend = 1'b1;
+                alu_op = 1'b1; // divides on active high
+            end
+
+	    S_CYCLE_3: begin
+                ld_quotient = 1'b1; ld_remainder = 1'b1;
+                alu_op = 1'b1; // divides on active high
+            end
+        // default:    // don't need default since we already made sure all of our outputs were assigned a value at the start of the always block
+        endcase
+    end // enable_signals
+   
+    // current_state registers
+    always@(posedge clk)
+    begin: state_FFs
+        if(!resetn)
+            current_state <= S_LOAD_INPUTS;
+        else
+            current_state <= next_state;
+    end // state_FFS
+endmodule
+
+
+module datapath(
+    input clk,
+    input resetn,
+    input [3:0] divisor,
+    input [3:0] dividend, 
+    input ld_divisor, ld_reg_mux, ld_dividend_mux, ld_reg, ld_dividend, ld_quotient, ld_remainder,
+    input alu_op,
+    output reg [3:0] quotient,
+    output reg [4:0] remainder
+    );
+    
+    // input registers
+    reg [4:0] divisor_reg;
+    reg [4:0] reg_a;
+    reg [3:0] dividend_reg;
+
+    //inputs of alu
+    reg [4:0] alu_divisor_in;
+    reg [4:0] alu_reg_a_in;
+    reg [3:0] alu_dividend_in;
+
+    // output of the alu
+    reg [4:0] alu_reg_a_out;
+    reg [3:0]alu_dividend_out;
+
+    //output registers
+    reg [4:0] remainder_reg;
+    reg [3:0] quotient_reg;
+    // alu inputs
+    reg [4:0] alu_divisor, alu_reg_a;
+    reg [3:0] alu_dividend;
+    
+    // Registers with respective input logic
+    always@(posedge clk) begin
+        if(!resetn) begin
+            divisor_reg <= 4'b0; 
+            reg_a <= 4'b0; 
+            dividend_reg <= 3'b0;  
+        end
+        else begin
+            if(ld_divisor)
+                divisor_reg <= {1'b0, divisor}; // load divisor
+            if(ld_reg)
+                reg_a <= ld_reg_mux ? alu_reg_a_out : 4'b0; 
+            if(ld_dividend)
+                dividend_reg <= ld_dividend_mux ? alu_dividend_out : dividend;
+        end
+    end
+ 
+    // Output result register
+    always@(posedge clk) begin
+        if(!resetn) begin
+            quotient <= 4'b0;
+	    remainder <= 5'b0; 
+        end
+        else 
+            if(ld_quotient)
+                quotient <= alu_dividend_out;
+	    if(ld_remainder)
+                remainder <= alu_reg_a_out;
+    end
+
+    // The ALU inputs
+    always @(*)
+    begin
+    	alu_divisor_in =  divisor_reg;
+   	alu_reg_a_in = reg_a;
+    	alu_dividend_in = dividend_reg;
+    end
+
+    // The ALU 
+    always @(*)
+    begin : ALU
+        // alu
+        case (alu_op)
+            1: begin //performs division
+                    alu_reg_a_in = alu_reg_a_in << 1; //left shift reg_a by 1 bit
+		    alu_reg_a_in[0] = alu_dividend_in[3]; //LSB of Reg_a = MSB of dividend
+		    alu_dividend_in = alu_dividend_in << 1; //left shift dividend by 1 bit
+		    alu_reg_a_in = alu_reg_a_in - alu_divisor_in; //subtracting divisor from reg_a
+		    alu_dividend_in[0] = !(alu_reg_a_in[4]);
+		    if(alu_reg_a_in[4])//if 1,
+			alu_reg_a_in = alu_reg_a_in + alu_divisor_in; //adding divisor to reg_a
+		    
+		    alu_dividend_out = alu_dividend_in;
+		    alu_reg_a_out = alu_reg_a_in; 
+               end
+            default: begin 
+			alu_dividend_out = 4'b0;
+			alu_reg_a_out = 5'b0;
+		     end
+        endcase
+    end  
+endmodule
+*/
