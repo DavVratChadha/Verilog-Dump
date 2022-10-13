@@ -1,0 +1,110 @@
+m255
+K4
+z2
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+Z0 dE:/Dav Vrat Chadha/ECE259/Lab 2
+vmux
+Z1 !s110 1665640858
+!i10b 1
+!s100 gdITfj5:eEbOamVHI^l6`0
+I:<b9oefGFn[?hASbTSWH:3
+Z2 VDg1SIo80bB@j0V0VzS_@n1
+Z3 dE:/Dav Vrat Chadha/ECE253/Lab 2
+Z4 w1632875880
+Z5 8mux.v
+Z6 Fmux.v
+L0 8
+Z7 OV;L;10.5b;63
+r1
+!s85 0
+31
+Z8 !s108 1665640858.000000
+Z9 !s107 mux.v|
+Z10 !s90 -reportprogress|300|mux.v|
+!i113 1
+Z11 tCvgOpt 0
+vmux2to1
+R1
+!i10b 1
+!s100 afChEB93:g=CUEd@;WQjS2
+I=F?kSLR6zRa1[@IoCQG<60
+R2
+R3
+R4
+R5
+R6
+L0 20
+R7
+r1
+!s85 0
+31
+R8
+R9
+R10
+!i113 1
+R11
+vv7404
+Z12 !s110 1632928891
+!i10b 1
+!s100 fN>?fe]6FlinKBBlJ4ad40
+Ij;n:6Io=:n;nA@zeYK?Fn0
+R2
+R0
+Z13 w1632925750
+Z14 8part2.v
+Z15 Fpart2.v
+L0 1
+R7
+r1
+!s85 0
+31
+Z16 !s108 1632928891.000000
+Z17 !s107 part2.v|
+Z18 !s90 -reportprogress|300|part2.v|
+!i113 1
+R11
+vv7408
+R12
+!i10b 1
+!s100 >z];[nmbHH2:_aSi<:T[e1
+IKKPgKi1o>??BEQYbI4dkZ3
+R2
+R0
+R13
+R14
+R15
+L0 14
+R7
+r1
+!s85 0
+31
+R16
+R17
+R18
+!i113 1
+R11
+vv7432
+R12
+!i10b 1
+!s100 aKkPXcln0b4cMcfD_4QSX0
+IiX=gO]lF[L?ZZe^`3?b]j1
+R2
+R0
+R13
+R14
+R15
+L0 25
+R7
+r1
+!s85 0
+31
+R16
+R17
+R18
+!i113 1
+R11
